@@ -33,7 +33,7 @@ class Parser {
   }
 
   consume(id, searhcInSymbols = false) {
-    const result = this.expect(id, true, false);
+    const result = this.expect(id, false, false);
     if (result) {
       this.pos += 1;
       if (searhcInSymbols) return this.getSymbol(result);
@@ -121,20 +121,34 @@ class Parser {
 
   deleteCommand() {}
 
-  // <select command> ::= "SELECT" <values selected> "from" <listado identificadores> <condicionales> ";"
-  selectCommand() {
-    fns._consume("SELECT");
-    // INSERT CODIGO INTERMEDIO DE SELECT aqui
-    fns.values_selected();
-    listado_identificadores();
-    fns.conditionals();
-    fns._consume("SEMICOLON");
+  insertCommand() {
+    // 往前推进
+    this.consume("INSERT");
+
+    // 往前推
+    this.consume("INTO");
+
+    // 标识符：表名称
+    this.consume("IDENTIFIER");
+
+    // 第一个括号：标识符
+    this.consume("LEFT_PARENTHESIS");
+    this.checkIdentifier();
+    this.consume("RIGHT_PARENTHESIS");
+
+    // 第二个括号，值
+    this.consume("VALUES");
+    this.consume("LEFT_PARENTHESIS");
+    this.checkValue();
+    this.consume("RIGHT_PARENTHESIS");
+
+    this.consume("SEMICOLON");
   }
 
   elementos_tabla() {
     // 遇到标识符
     if (this.expect("IDENTIFIER")) {
-      this.columna();
+      this.column();
       this.elementos_tabla_prima();
     }
   }
@@ -148,7 +162,7 @@ class Parser {
   }
 
   // <columna> ::= <identificador> <tipo datos> <seccion varios>
-  columna() {
+  column() {
     const token = this.consume("IDENTIFIER");
     this.getSymbol(token);
 
@@ -163,6 +177,56 @@ class Parser {
     } else if (this.expect("INT")) {
       this.consume("INT");
     }
+  }
+
+  checkIdentifier() {
+    if (this.expect("IDENTIFIER")) {
+      // 是标识符，往前推
+      this.consume("IDENTIFIER");
+      // 检查符号
+      this.insertCheckComma("checkIdentifier");
+    } else {
+      throw new Error(`parsing error: unexpected token, expected IDENTIFIER`);
+    }
+  }
+
+  checkValue() {
+    if (this.expect("STRING")) {
+      this.consume("STRING");
+      this.insertCheckComma("checkValue");
+    } else if (this.expect("DIGIT")) {
+      this.consume("DIGIT");
+      this.insertCheckComma("checkValue");
+    } else if (this.expect("DIGITS")) {
+      this.consume("DIGITS");
+      this.insertCheckComma("checkValue");
+    }
+  }
+
+  // insert 语法检查逗号
+  insertCheckComma(type) {
+    if (this.expect("COMMA")) {
+      this.consume("COMMA");
+      switch (type) {
+        case "checkIdentifier":
+          this.checkIdentifier();
+          break;
+
+        case "checkValue":
+          this.checkValue();
+          break;
+      }
+    }
+  }
+
+  // <select command> ::= "SELECT" <values selected> "from" <listado identificadores> <condicionales> ";"
+  selectCommand() {
+    fns._consume("SELECT");
+    // INSERT CODIGO INTERMEDIO DE SELECT aqui
+    fns.values_selected();
+    listado_identificadores();
+    fns.conditionals();
+    fns._consume("SEMICOLON");
   }
 
   listado_identificadores() {
