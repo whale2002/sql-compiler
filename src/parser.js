@@ -117,7 +117,19 @@ class Parser {
     this.consume("SEMICOLON");
   }
 
-  updateCommand() {}
+  updateCommand() {
+    this.consume("UPDATE");
+    this.consume("IDENTIFIER");
+    this.consume("SET");
+
+    this.asignacion();
+
+    this.consume("WHERE");
+
+    this.condicion();
+
+    this.consume("SEMICOLON");
+  }
 
   deleteCommand() {
     this.consume("DELETE");
@@ -287,6 +299,8 @@ class Parser {
       this.consume("STRING");
     } else if (this.expect("DIGIT")) {
       this.consume("DIGIT");
+    } else if (this.expect("DIGITS")) {
+      this.consume("DIGITS");
     } else {
       throw new Error("error: expected a identifier");
     }
@@ -361,15 +375,21 @@ class Parser {
     this.consume("DIGIT");
   }
 
-  listado_valores() {
-    fns.value_literal();
-    fns.listado_valores_prima();
+  // <asignacion> ::= <identificador> "=" <expresion>
+  asignacion() {
+    if (this.expect("IDENTIFIER")) {
+      this.consume("IDENTIFIER");
+      this.consume("EQUALS");
+      this.expresion();
+      this.asignacion_prima();
+    }
   }
 
-  listado_valores_prima() {
-    if (fns._expect("COMMA")) {
-      fns._consume("COMMA");
-      fns.listado_valores();
+  // <asignacion prima> ::= lambda | "," <asignacion>
+  asignacion_prima() {
+    if (this.expect("COMMA")) {
+      this.consume("COMMA");
+      this.asignacion();
     }
   }
 }
