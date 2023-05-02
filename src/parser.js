@@ -184,7 +184,7 @@ class Parser {
       // 是标识符，往前推
       this.consume("IDENTIFIER");
       // 检查符号
-      this.insertCheckComma("checkIdentifier");
+      this.checkComma("checkIdentifier");
     } else {
       throw new Error(`parsing error: unexpected token, expected IDENTIFIER`);
     }
@@ -193,18 +193,18 @@ class Parser {
   checkValue() {
     if (this.expect("STRING")) {
       this.consume("STRING");
-      this.insertCheckComma("checkValue");
+      this.checkComma("checkValue");
     } else if (this.expect("DIGIT")) {
       this.consume("DIGIT");
-      this.insertCheckComma("checkValue");
+      this.checkComma("checkValue");
     } else if (this.expect("DIGITS")) {
       this.consume("DIGITS");
-      this.insertCheckComma("checkValue");
+      this.checkComma("checkValue");
     }
   }
 
-  // insert 语法检查逗号
-  insertCheckComma(type) {
+  // 检查逗号
+  checkComma(type) {
     if (this.expect("COMMA")) {
       this.consume("COMMA");
       switch (type) {
@@ -215,49 +215,69 @@ class Parser {
         case "checkValue":
           this.checkValue();
           break;
+
+        case "checkSelectValues":
+          this.checkSelectValues();
+          break;
       }
     }
   }
 
   // <select command> ::= "SELECT" <values selected> "from" <listado identificadores> <condicionales> ";"
   selectCommand() {
-    fns._consume("SELECT");
-    // INSERT CODIGO INTERMEDIO DE SELECT aqui
-    fns.values_selected();
-    listado_identificadores();
-    fns.conditionals();
-    fns._consume("SEMICOLON");
+    this.consume("SELECT");
+
+    // 检查值
+    this.checkSelectValues();
+
+    this.consume("FROM");
+
+    this.consume("IDENTIFIER");
+
+    // 检查条件约束
+    this.conditionals();
+
+    this.consume("SEMICOLON");
   }
 
-  listado_identificadores() {
-    if (fns._expect("IDENTIFIER")) {
-      fns.identifier();
-      fns.listado_identificadores_prima();
+  checkSelectValues() {
+    // 通配符
+    if (this.expect("ASTERISK")) {
+      this.consume("ASTERISK");
+    } else if (this.expect("IDENTIFIER")) {
+      // 是标识符，往前推
+      this.consume("IDENTIFIER");
+      // 检查符号
+      this.checkComma("checkSelectValues");
     } else {
-      throw new Error("must provide one or more identifiers");
+      throw new Error("expected * or one or more identifiers");
     }
   }
 
-  identifier() {
-    var token = fns._consume("IDENTIFIER");
-    var symbolId = fns._getSymbol(token);
-    // INSERTAR CODIGO INTERMEDIO IDENTIFIER AQUI
+  conditionals() {
+    if (this.expect("WHERE")) {
+      this.consume("WHERE");
+      this.consume("IDENTIFIER");
+
+      this.relational_operator();
+      this.value_literal();
+    }
   }
 
   // <operador relacional> ::= "<" | "<=" | ">" | ">=" | "==" | "!="
   relational_operator() {
-    if (fns._expect("LESS_THAN")) {
-      fns.lessThan();
-    } else if (fns._expect("LESS_THAN_EQUALS")) {
-      fns.lessThanEqual();
-    } else if (fns._expect("MORE_THAN")) {
-      fns.moreThan();
-    } else if (fns._expect("MORE_THAN_EQUALS")) {
-      fns.moreThanEqual();
-    } else if (fns._expect("EQUALS")) {
-      fns.equals();
-    } else if (fns._expect("NOT_EQUAL")) {
-      fns.notEquals();
+    if (this.expect("LESS_THAN")) {
+      this.lessThan();
+    } else if (this.expect("LESS_THAN_EQUALS")) {
+      this.lessThanEqual();
+    } else if (this.expect("MORE_THAN")) {
+      this.moreThan();
+    } else if (this.expect("MORE_THAN_EQUALS")) {
+      this.moreThanEqual();
+    } else if (this.expect("EQUALS")) {
+      this.equals();
+    } else if (this.expect("NOT_EQUAL")) {
+      this.notEquals();
     } else {
       throw new Error("expected relational operator");
     }
@@ -265,63 +285,52 @@ class Parser {
 
   // <
   lessThan() {
-    fns._consume("LESS_THAN");
-    // INSERTAR CODIGO INTERMEDIO < AQUI
+    this.consume("LESS_THAN");
   }
 
   // <=
   lessThanEqual() {
-    fns._consume("LESS_THAN_EQUALS");
-    // INSERTAR CODIGO INTERMEDIO <= AQUI
+    this.consume("LESS_THAN_EQUALS");
   }
 
   // >
   moreThan() {
-    fns._consume("MORE_THAN");
-    // INSERTAR CODIGO INTERMEDIO > AQUI
+    this.consume("MORE_THAN");
   }
 
   // >=
   moreThanEqual() {
-    fns._consume("MORE_THAN_EQUALS");
-    // INSERTAR CODIGO INTERMEDIO >= AQUI
+    this.consume("MORE_THAN_EQUALS");
   }
 
   // ==
   equals() {
-    fns._consume("EQUALS");
-    // INSERTAR CODIGO INTERMEDIO == AQUI
+    this.consume("EQUALS");
   }
 
   // !=
   notEquals() {
-    fns._consume("NOT_EQUAL");
-    // INSERTAR CODIGO INTERMEDIO != AQUI
+    this.consume("NOT_EQUAL");
   }
 
   value_literal() {
-    if (fns._expect("IDENTIFIER")) {
-      fns.identifier();
-    } else if (fns._expect("NUMBER")) {
-      fns.number();
-    } else if (fns._expect("STRING")) {
-      fns.string();
+    if (this.expect("IDENTIFIER")) {
+      this.consume("IDENTIFIER");
+    } else if (this.expect("DIGIT")) {
+      this.number();
+    } else if (this.expect("STRING")) {
+      this.string();
     } else {
       throw new Error("expected value");
     }
   }
 
   string() {
-    var token = fns._consume("STRING");
-    var symbolId = fns._getSymbol(token);
-    // INSERTAR CODIGO INTERMEDIO STRING AQUI
+    this.consume("STRING");
   }
 
   number() {
-    var token = fns._consume("NUMBER");
-    var symbolId = fns._getSymbol(token);
-    // PARSEA EL VALOR DEL TOKEN
-    // INSERTAR CODIGO INTERMEDIO NUMBER AQUI
+    this.consume("DIGIT");
   }
 
   listado_valores() {
@@ -333,25 +342,6 @@ class Parser {
     if (fns._expect("COMMA")) {
       fns._consume("COMMA");
       fns.listado_valores();
-    }
-  }
-
-  values_selected() {
-    if (fns._expect("ASTERISK")) {
-      fns._consume("ASTERISK");
-    } else if (fns._expect("IDENTIFIER")) {
-      fns.listado_identificadores();
-    } else {
-      throw new Error("expected * or one or more identifiers");
-    }
-  }
-
-  conditionals() {
-    if (fns._expect("WHERE")) {
-      fns._consume("WHERE");
-      // INSERT CODIGO INTERMEDIO DE CREATE_DB aqui
-      fns.relational_operator();
-      fns.value_literal();
     }
   }
 }
