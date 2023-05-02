@@ -3,6 +3,7 @@ const rules = [
   { id: "DATABASE", pattern: /^DATABASE/i },
   { id: "TABLE", pattern: /^TABLE/i },
   { id: "SELECT", pattern: /^SELECT/i },
+  { id: "DELETE", pattern: /^DELETE/i },
   { id: "DROP", pattern: /^DROP/i },
   { id: "INSERT", pattern: /^INSERT/i },
   { id: "INTO", pattern: /^INTO/i },

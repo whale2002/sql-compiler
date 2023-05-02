@@ -119,7 +119,15 @@ class Parser {
 
   updateCommand() {}
 
-  deleteCommand() {}
+  deleteCommand() {
+    this.consume("DELETE");
+    this.consume("FROM");
+    this.consume("IDENTIFIER");
+
+    this.consume("WHERE");
+    this.condicion();
+    this.consume("SEMICOLON");
+  }
 
   insertCommand() {
     // 往前推进
@@ -261,6 +269,26 @@ class Parser {
 
       this.relational_operator();
       this.value_literal();
+    }
+  }
+
+  // <condicion> ::= <expresion> <operador relacional> <expresion>
+  condicion() {
+    this.expresion();
+    this.relational_operator();
+    this.expresion();
+  }
+
+  // <expresion> ::= <identificador> | <literal>
+  expresion() {
+    if (this.expect("IDENTIFIER")) {
+      this.consume("IDENTIFIER");
+    } else if (this.expect("STRING")) {
+      this.consume("STRING");
+    } else if (this.expect("DIGIT")) {
+      this.consume("DIGIT");
+    } else {
+      throw new Error("error: expected a identifier");
     }
   }
 
