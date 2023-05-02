@@ -11,9 +11,6 @@ class Parser {
   parse(stream) {
     this.stream = stream;
     this.pos = 0;
-    this.symbols = [];
-    this.code = [];
-    this.symbolsTable = {};
     this.init();
   }
 
@@ -39,17 +36,6 @@ class Parser {
       if (searhcInSymbols) return this.getSymbol(result);
 
       return result;
-    }
-  }
-
-  getSymbol(token) {
-    if (this.symbolsTable.hasOwnProperty[token.value]) {
-      return this.symbolsTable[token.value];
-    } else {
-      const length = this.symbols.length;
-      this.symbols.push(token.value);
-      this.symbolsTable[token.value] = "s" + length;
-      return this.symbolsTable[token.value];
     }
   }
 
