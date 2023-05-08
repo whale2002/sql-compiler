@@ -15,17 +15,17 @@ const errorSql = `insert into students(sname, sage) values(1, 'chin');`;
 
 // 词法分析器
 const lexer = new Lexer();
-const tokens = lexer.tokenize(sql3);
+const tokens = lexer.tokenize(sql7);
 // 语法分析器
 const parser = new Parser();
 // 语法分析器件
-const analyzer = new Analyzer();
+// const analyzer = new Analyzer();
 
 console.log("tokens为:\n", tokens);
 
 parser.parse(tokens);
 console.log("语法分析完毕");
 
-const _tokens = lexer.tokenize(errorSql);
-const errors = analyzer.parseInsert(_tokens);
-console.log("语义分析结果为\n", errors);
+// const _tokens = lexer.tokenize(errorSql);
+// const errors = analyzer.parseInsert(_tokens);
+// console.log("语义分析结果为\n", errors);

@@ -18,6 +18,7 @@ class Analyzer {
     }
   }
 
+  // 检查类型是否匹配
   checkDataTypesMatch(tableName, columns, types) {
     const expectedColumns = Object.keys(tables[tableName]);
 
@@ -40,6 +41,7 @@ class Analyzer {
     }
   }
 
+  // 获取类型
   getType(value) {
     if (/^[0-9]+$/.test(value)) {
       return "INT";
@@ -48,6 +50,7 @@ class Analyzer {
     }
   }
 
+  // 开始解析
   parseInsert(tokens) {
     this.tokens = tokens;
     // 跳过insert

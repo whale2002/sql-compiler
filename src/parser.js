@@ -1,21 +1,17 @@
 class Parser {
   constructor() {
-    this.symbols = [];
-    this.symbolsTable = {};
-    this.fns = {};
-    this.stream = [];
-    this.code = [];
+    this.tokens = [];
     this.pos = 0;
   }
 
-  parse(stream) {
-    this.stream = stream;
+  parse(tokens) {
+    this.tokens = tokens;
     this.pos = 0;
     this.init();
   }
 
-  expect(id, throwError = false, debug = true) {
-    const token = this.stream[this.pos];
+  expect(id, throwError = false) {
+    const token = this.tokens[this.pos];
     if (token) {
       if (token.id === id) {
         return token;
@@ -29,11 +25,10 @@ class Parser {
     }
   }
 
-  consume(id, searhcInSymbols = false) {
-    const result = this.expect(id, false, false);
+  consume(id) {
+    const result = this.expect(id, false);
     if (result) {
       this.pos += 1;
-      if (searhcInSymbols) return this.getSymbol(result);
 
       return result;
     }
@@ -72,16 +67,13 @@ class Parser {
 
   createDBCommand() {
     this.consume("DATABASE");
-    const token = this.consume("IDENTIFIER");
-    const tokenId = this.getSymbol(token);
-    this.code.push(1, tokenId);
+    this.consume("IDENTIFIER");
     this.consume("SEMICOLON");
   }
 
   createTableCommand() {
     this.consume("TABLE");
-    const token = this.consume("IDENTIFIER");
-    this.getSymbol(token);
+    this.consume("IDENTIFIER");
 
     this.consume("LEFT_PARENTHESIS");
     this.elementos_tabla();
@@ -97,9 +89,8 @@ class Parser {
     this.expect("TABLE");
     this.consume("TABLE");
 
-    const token = this.consume("IDENTIFIER");
-    const tokenId = this.getSymbol(token);
-    this.code.push(1, tokenId);
+    this.consume("IDENTIFIER");
+
     this.consume("SEMICOLON");
   }
 
@@ -159,7 +150,6 @@ class Parser {
     }
   }
 
-  // <elementos tabla prima> ::= lambda | "," <elemento tabla> <elementos tabla prima>
   elementos_tabla_prima() {
     if (this.expect("COMMA")) {
       this.consume("COMMA");
@@ -167,10 +157,8 @@ class Parser {
     }
   }
 
-  // <columna> ::= <identificador> <tipo datos> <seccion varios>
   column() {
-    const token = this.consume("IDENTIFIER");
-    this.getSymbol(token);
+    this.consume("IDENTIFIER");
 
     // 如果是字符串类型，继续往后推
     if (this.expect("VARCHAR")) {
